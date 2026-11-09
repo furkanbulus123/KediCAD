@@ -106,7 +106,10 @@ class HerYerdeGoster:
         from . import config
         from .ui import ust_menu
 
-        acik = (not config.bayrak("ShowEverywhere")) if checked is None             else bool(checked)
+        if checked is None:
+            acik = not config.bayrak("ShowEverywhere")
+        else:
+            acik = bool(checked)
         config.yaz("ShowEverywhere", acik)
         if acik:
             ust_menu.yerlestir()
