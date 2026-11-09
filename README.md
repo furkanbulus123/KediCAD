@@ -102,7 +102,7 @@ could contain instructions meant for the AI.
 Anthropic's [privacy policy](https://www.anthropic.com/legal/privacy) applies to
 that data. Everything else stays on your machine, inside the addon folder:
 
-- `LOG/` — plain-text chat logs (open them from the panel's right-click menu)
+- `LOG/` — plain-text chat logs (open them with the **History** button in the panel)
 - `.kedicad-backups/` — a copy of your document saved before the first AI change
 
 Delete either folder at any time.
