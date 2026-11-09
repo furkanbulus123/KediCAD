@@ -29,6 +29,7 @@ caddy-atlas.html
 .copilot-backups/
 .kedicad-backups/
 .caddy-backups/
+.kedicad-tmp/
 
 # Windows
 Thumbs.db
@@ -37,4 +38,3 @@ desktop.ini
 # Test logs: the suite now writes here instead of the real LOG/
 # (see sohbet_log, KEDICAD_LOG_DIR). Run output, it does not belong in the repo.
 tests/_gunlukler/
-.kedicad-tmp/
