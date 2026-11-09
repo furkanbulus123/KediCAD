@@ -194,6 +194,79 @@ try:
 except Exception:
     kontrol("ayar tasima", False, traceback.format_exc(limit=3))
 
+# Addon Index AI kurallari (Addon-Academy #61): veri gondermeden ONCE
+# FreeCAD icinde izin; kullanicinin kendi Claude kurulumu oturuma sizmaz.
+yaz("5d) veri paylasim izni ve CLI yalitimi")
+try:
+    from kedicad import config as _ayar, izin as _izin
+    _onceki = _ayar.metin("Consent")
+    try:
+        kontrol("izin varsayilani BOS (verilmemis)",
+                _ayar.VARSAYILAN.get("Consent") == "")
+        _ayar.yaz("Consent", "")
+        kontrol("izin yokken verildi_mi False", _izin.verildi_mi() is False)
+        _izin.ver()
+        kontrol("ver() sonrasi True", _izin.verildi_mi() is True)
+        _eski_turler = _izin.VERI_TURLERI
+        _izin.VERI_TURLERI = _eski_turler + ("yeni bir veri turu",)
+        kontrol("veri turu degisince izin YENIDEN soruluyor",
+                _izin.verildi_mi() is False)
+        _izin.VERI_TURLERI = _eski_turler
+        kontrol("ayni metne donunce yine gecerli", _izin.verildi_mi() is True)
+        _izin.geri_al()
+        kontrol("geri_al() sonrasi False", _izin.verildi_mi() is False)
+        _soru = _izin.soru_metni()
+        kontrol("soru servisi adiyla soyluyor", "Anthropic" in _soru)
+        kontrol("soru HER veri turunu sayiyor",
+                all(t in _soru for t in _izin.VERI_TURLERI))
+        kontrol("ekran goruntusu ve dosya yolu acikca yaziyor",
+                "screenshots" in _soru and "file path" in _soru)
+        kontrol("izni geri alma komutu kayitli",
+                "KediCAD_WithdrawConsent" in kayitli, sorted(kayitli))
+        kontrol("InitGui menude geri alma komutu var",
+                "KediCAD_WithdrawConsent" in _initgui)
+
+        # Transport kapisi: izin yokken claude.exe BASLAMAZ, tur hata ile biter.
+        from PySide import QtCore as _QC
+        _app = _QC.QCoreApplication.instance() or _QC.QCoreApplication([])
+        from kedicad.transport import transport as _T
+        _t = _T.KaliciTransport()
+        _sonuclar = []
+        _t.tur_bitti.connect(_sonuclar.append)
+        _t.tur_gonder("merhaba")
+        kontrol("izin yokken tur reddedildi",
+                len(_sonuclar) == 1 and _sonuclar[0].hata_mi
+                and _sonuclar[0].aciklama == _izin.REDDEDILDI,
+                [getattr(s, "aciklama", s) for s in _sonuclar])
+        kontrol("izin yokken claude.exe baslamadi",
+                not _t._proc.calisiyor_mu())
+        kontrol("reddedilen tur transport'u mesgul birakmadi",
+                not _t.mesgul_mu())
+
+        _argv = _t._argv()
+        kontrol("MCP sunuculari kapali (--strict-mcp-config)",
+                "--strict-mcp-config" in _argv and "--mcp-config" not in _argv)
+        kontrol("kullanici ayarlari yuklenmiyor (--setting-sources project)",
+                "--setting-sources" in _argv
+                and _argv[_argv.index("--setting-sources") + 1] == "project")
+        kontrol("model araclari hala kapali (--tools '')",
+                _argv[_argv.index("--tools") + 1] == "")
+        _brief = _argv[_argv.index("--append-system-prompt-file") + 1]
+        kontrol("brief dosya olarak veriliyor ve var",
+                _os.path.isfile(_brief) and _brief.endswith("CLAUDE.md"), _brief)
+        _ortam = _t._proc._ortam()
+        kontrol("CLAUDE.md otomatik yukleme kapali",
+                _ortam.value("CLAUDE_CODE_DISABLE_CLAUDE_MDS") == "1")
+        kontrol("otomatik hafiza kapali",
+                _ortam.value("CLAUDE_CODE_DISABLE_AUTO_MEMORY") == "1")
+        _gd = str(_ayar.gecici_dizini())
+        kontrol("ekran goruntusu klasoru eklentinin icinde",
+                _gd.startswith(str(_ayar.eklenti_dizini())), _gd)
+    finally:
+        _ayar.yaz("Consent", _onceki)
+except Exception:
+    kontrol("izin / yalitim", False, traceback.format_exc(limit=4))
+
 yaz("6) claude.exe bulunabiliyor mu")
 try:
     from kedicad import locate

@@ -4,8 +4,8 @@
   <description>AI assistant inside FreeCAD. You draw, the AI continues, you keep
   going - all on one live document. It measures its work (overlaps, open shells,
   inside-out solids, printability) instead of guessing.</description>
-  <version>0.3.0</version>
-  <date>2026-11-04</date>
+  <version>0.4.0</version>
+  <date>2026-11-09</date>
   <maintainer email="77415793+furkanbulus123@users.noreply.github.com">Furkan Bulus</maintainer>
   <license>MIT</license>
   <url type="repository" branch="master">https://github.com/furkanbulus123/KediCAD</url>

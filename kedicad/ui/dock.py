@@ -16,7 +16,7 @@ import time
 
 from PySide import QtCore, QtGui, QtWidgets
 
-from .. import config, kayitlar, locate, log
+from .. import config, izin, kayitlar, locate, log
 from ..conversation import ConversationController, _short_num
 from .code_card import CodeCard
 
@@ -630,8 +630,37 @@ class KediCADPanel(QtWidgets.QWidget):
         metin = self.giris.toPlainText().strip()
         if not metin:
             return
+        if not self._izin_al():
+            # The text STAYS in the box: saying no must not cost the user
+            # what they typed.
+            self.mesaj_ekle("sistem", izin.REDDEDILDI)
+            return
         self.giris.clear()
         self.ctl.gonder(metin)
+
+    def _izin_al(self) -> bool:
+        """Consent before the first request (Addon Index rule, see izin.py).
+
+        Asked at the first SEND, not when the panel opens: opening the panel
+        sends nothing, and the question makes sense at the moment something
+        would leave the machine. The default button is "Don't allow".
+        """
+        if izin.verildi_mi():
+            return True
+        kutu = QtWidgets.QMessageBox(self)
+        kutu.setIcon(QtWidgets.QMessageBox.Question)
+        kutu.setWindowTitle("KediCAD: data sharing")
+        kutu.setText(izin.soru_metni())
+        evet = kutu.addButton("Allow", QtWidgets.QMessageBox.AcceptRole)
+        hayir = kutu.addButton("Don't allow", QtWidgets.QMessageBox.RejectRole)
+        kutu.setDefaultButton(hayir)
+        kutu.setEscapeButton(hayir)
+        kutu.exec()
+        if kutu.clickedButton() is evet:
+            izin.ver()
+            log.bilgi("data-sharing consent given")
+            return True
+        return False
 
     def geri_al(self) -> None:
         # The logic is in ConversationController: the AI goes through the

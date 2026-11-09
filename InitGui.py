@@ -79,7 +79,8 @@ class KediCADWorkbench(Workbench):  # noqa: F821  (injected by FreeCAD)
         commands.kaydet()
         self.appendToolbar("KediCAD", list(commands.ARAC_CUBUGU))
         self.appendMenu("KediCAD", list(commands.ARAC_CUBUGU)
-                        + ["Separator", "KediCAD_ShowEverywhere"])
+                        + ["Separator", "KediCAD_ShowEverywhere",
+                           "KediCAD_WithdrawConsent"])
 
     def Activated(self):
         # Open the panel automatically the first time the workbench is selected.

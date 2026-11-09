@@ -21,7 +21,7 @@ from __future__ import annotations
 import os
 import tempfile
 
-from . import log
+from . import config, log
 
 # A reasonable size for the panel. Bigger raises the token cost directly
 # (measured: even a 200x120 test image turned into a ~2.3k-token request),
@@ -59,7 +59,10 @@ def yakala(genislik: int = GENISLIK, yukseklik: int = YUKSEKLIK) -> bytes | None
 
     # The temporary file is closed FIRST: on Windows another process/library
     # cannot write to an open file, and saveImage fails silently.
-    tut = tempfile.NamedTemporaryFile(suffix=".png", delete=False)
+    # In the addon's own private folder, not the shared temp dir (see
+    # config.gecici_dizini). The file is deleted right after it is read.
+    tut = tempfile.NamedTemporaryFile(suffix=".png", delete=False,
+                                      dir=str(config.gecici_dizini()))
     yol = tut.name
     tut.close()
 

@@ -67,6 +67,17 @@ doc.UndoMode = 1
 
 ctl = ConversationController()
 
+# Bu test GERCEK istek gonderiyor: veri paylasim izni gerekir (izin.py).
+# Kullanicinin kendi degeri test bitince (her cikista) geri yazilir.
+from kedicad import config as _cfg, izin as _izin  # noqa: E402
+_izin_onceki = _cfg.metin("Consent")
+_izin.ver()
+
+
+def _izni_geri_yaz():
+    _cfg.yaz("Consent", _izin_onceki)
+
+
 # --- gozlemciler ---
 gorulen = {"asama": [], "parca": 0, "metin": "", "bloklar": [],
            "bilgi": "", "ipucu": "", "mesajlar": []}
@@ -705,6 +716,7 @@ kontrol("yanit geldi (zaman asimi yok)", s is not None)
 if s is None:
     yaz("")
     yaz("%d gecti, %d basarisiz" % (gecti, basarisiz + 1))
+    _izni_geri_yaz()
     with open(RAPOR, "w", encoding="utf-8") as f:
         f.write("\n".join(_satirlar) + "\n")
     sys.exit(1)
@@ -850,6 +862,7 @@ kontrol("bos blokta '0 kod blogu' yazmiyor",
         "0 kod" not in gorulen["bilgi"], gorulen["bilgi"])
 
 ctl.transport.kapat()
+_izni_geri_yaz()
 
 yaz("")
 yaz("%d gecti, %d basarisiz" % (gecti, basarisiz))

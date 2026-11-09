@@ -66,7 +66,7 @@ from dataclasses import dataclass, field
 
 from PySide import QtCore
 
-from .. import config, locate, log
+from .. import config, izin, locate, log
 from .process import ClaudeProcess
 
 # Output contract. The LONG guide lives in workspace/CLAUDE.md (the CLI loads
@@ -747,6 +747,16 @@ SISTEM_SOZLESMESI = (
 )
 
 
+def _brief_yolu():
+    """The FreeCAD API brief the model reads (workspace/CLAUDE.md).
+
+    It used to be picked up automatically because claude.exe runs in
+    workspace/. CLAUDE.md auto-discovery is now OFF (it also pulled in the
+    user's private global CLAUDE.md), so the file is passed by path.
+    """
+    return config.calisma_dizini() / "CLAUDE.md"
+
+
 @dataclass
 class TurSonucu:
     oturum: str = ""
@@ -954,6 +964,15 @@ class KaliciTransport(ClaudeTransport):
         if self._mesgul:
             raise RuntimeError("the previous turn is still running")
 
+        # NO CONSENT, NO REQUEST. The panel asks first (dock.gonder); this is
+        # the second door, and the one that cannot be forgotten: every turn,
+        # automatic ones included, comes through here (see izin.py).
+        if not izin.verildi_mi():
+            self.tur_basladi.emit()
+            self._mesgul = True
+            self._turu_iptal_et(izin.REDDEDILDI)
+            return
+
         self._sonuc_nesnesi = None
         self._metin_parcalari = []
         self._model = ""
@@ -1045,6 +1064,22 @@ class KaliciTransport(ClaudeTransport):
             # disk is code the user pressed Run on in the panel.
             "--tools", "",
             "--permission-mode", "dontAsk",
+            # NOTHING OF THE USER'S OWN SETUP COMES IN. Measured with this
+            # very CLI (2.1.319): without these flags a KediCAD session also
+            # loaded the user's claude.ai connectors (Gmail, Drive, Calendar
+            # ...) as MCP servers, and their global ~/.claude/CLAUDE.md went
+            # to the model with every request. Their allow rules or hooks
+            # could likewise widen what the model may do. --bare would cut
+            # all of it but does not read the subscription login, so:
+            #   --strict-mcp-config      no MCP server at all (none is given)
+            #   --setting-sources project only workspace/ settings (ours)
+            #   CLAUDE_CODE_DISABLE_CLAUDE_MDS (process._ortam) no CLAUDE.md
+            #   auto-discovery — so our own brief is passed explicitly:
+            "--strict-mcp-config",
+            "--setting-sources", "project",
+            "--append-system-prompt-file", str(_brief_yolu()),
+            # The contract is ~27k characters; with the brief that would pass
+            # Windows' ~32k command-line limit — the brief goes as a FILE.
             "--append-system-prompt", SISTEM_SOZLESMESI,
         ]
         # AMOUNT OF THINKING. 91-94% of the latency is thinking (measured, see

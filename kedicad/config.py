@@ -12,6 +12,8 @@ user.cfg; we do not invent a separate settings file. Keys:
     PanelYuzde       panel width on first open, as % of the main window (see below)
     ShowEverywhere   the cat button in every workbench (off by default — the
                      Addon Index wants an addon's toolbars in its own workbench)
+    Consent          signature of the data-sharing text the user agreed to;
+                     empty = nothing may be sent (see izin.py)
 
 REMOVED — `AutoRun`. Its description was "run without confirmation if the
 guard is clean", and the GUARD IT RELIED ON WAS NEVER WRITTEN. So turning
@@ -54,6 +56,9 @@ VARSAYILAN = {
     # the Addon Index rule is that an addon keeps its toolbars to its own
     # workbench. Turned on from the KediCAD menu (commands.HerYerdeGoster).
     "ShowEverywhere": False,
+    # Signature of the data-sharing text the user agreed to (see izin.py).
+    # Empty = not agreed: nothing is sent to the AI service.
+    "Consent": "",
 }
 
 
@@ -319,6 +324,24 @@ def calisma_dizini() -> Path:
     """
     d = eklenti_dizini() / "workspace"
     d.mkdir(parents=True, exist_ok=True)
+    return d
+
+
+def gecici_dizini() -> Path:
+    """Short-lived files written for the model (view screenshots).
+
+    NOT the system temp directory: the Addon Index rules for AI addons say
+    files written for the agent are readable only by the current user and
+    never placed in shared temporary directories. On Windows %TEMP% is
+    per-user already, but on Linux/macOS /tmp is shared — so the addon's own
+    folder, closed to other users where the OS supports it.
+    """
+    d = eklenti_dizini() / ".kedicad-tmp"
+    d.mkdir(parents=True, exist_ok=True)
+    try:
+        os.chmod(d, 0o700)
+    except OSError:
+        pass
     return d
 
 

@@ -119,10 +119,40 @@ class HerYerdeGoster:
         return True
 
 
+class IzniGeriAl:
+    """Menu: withdraw the data-sharing consent (see izin.py).
+
+    The Addon Index rules want consent asked inside FreeCAD; taking it back
+    must be just as easy. After this nothing is sent until the user agrees
+    again — the panel asks on the next message.
+    """
+
+    def GetResources(self):
+        return {
+            "Pixmap": _ikon("kedicad.svg"),
+            "MenuText": "Withdraw data-sharing consent",
+            "ToolTip": "Stop KediCAD from sending anything to Anthropic until "
+                       "you agree again",
+        }
+
+    def Activated(self):
+        from . import izin
+
+        izin.geri_al()
+        log.bilgi("data-sharing consent withdrawn: nothing will be sent "
+                  "until you agree again")
+
+    def IsActive(self):
+        from . import izin
+
+        return izin.verildi_mi()
+
+
 KOMUTLAR = (
     ("KediCAD_ShowPanel", PaneliGoster()),
     ("KediCAD_UndoLastAIChange", SonAiDegisikliginiGeriAl()),
     ("KediCAD_ShowEverywhere", HerYerdeGoster()),
+    ("KediCAD_WithdrawConsent", IzniGeriAl()),
 )
 
 # What goes on the workbench's own toolbar (the setting lives in the menu).

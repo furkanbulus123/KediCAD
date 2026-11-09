@@ -111,6 +111,12 @@ class ClaudeProcess(QtCore.QObject):
         for k in ("PYTHONHOME", "PYTHONPATH", "PYTHONSTARTUP"):
             o.remove(k)
         o.insert("PYTHONIOENCODING", "utf-8")
+        # The user's own CLAUDE.md files and auto-memory stay out of the
+        # session (measured: the global ~/.claude/CLAUDE.md was being sent
+        # with every request). KediCAD's brief is passed explicitly with
+        # --append-system-prompt-file, see transport._argv.
+        o.insert("CLAUDE_CODE_DISABLE_CLAUDE_MDS", "1")
+        o.insert("CLAUDE_CODE_DISABLE_AUTO_MEMORY", "1")
         return o
 
     def _stdout_geldi(self) -> None:

@@ -79,12 +79,25 @@ Then describe what you want:
 ## Privacy
 
 KediCAD itself makes no network connections and collects no telemetry. The only
-external service is the Claude Code CLI, which sends to Anthropic:
+external service is Anthropic, reached through the Claude Code CLI. **Nothing is
+sent until you agree:** the first time you send a message, KediCAD asks inside
+FreeCAD and lists exactly what goes out:
 
 - your messages,
-- a text description of the open document (object names, sizes, positions),
-- the output of the code it runs, and
-- screenshots of the 3D view when it does a visual check.
+- a text description of the open document (its name and file path, object
+  names, labels, types, sizes, positions and the selection),
+- screenshots of the 3D view when it does a visual check,
+- after you run code: its output, errors and KediCAD's geometry check results,
+- the earlier messages of the same chat.
+
+If that list ever changes, you are asked again. You can withdraw consent at any
+time from **KediCAD → Withdraw data-sharing consent**.
+
+KediCAD's Claude session is kept separate from your own Claude Code setup: the
+model gets no tools and no file access, and your MCP servers, claude.ai
+connectors, settings, hooks and personal `CLAUDE.md` files are not loaded. Code
+runs only when you press **Run**, so read it first; a document from someone else
+could contain instructions meant for the AI.
 
 Anthropic's [privacy policy](https://www.anthropic.com/legal/privacy) applies to
 that data. Everything else stays on your machine, inside the addon folder:
